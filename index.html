@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="MediaGrab — เครื่องมือจัดการลิงก์วิดีโอและสตรีม">
+  <title>MediaGrab — Video Link Helper</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Noto Sans Thai"','Inter','sans-serif']}}}}</script>
+  <style>body{font-family:'Noto Sans Thai',Inter,sans-serif}.gradient-text{background:linear-gradient(135deg,#38bdf8,#818cf8 50%,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.glass{background:rgba(30,41,59,.78);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08)}</style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500">
+  <header class="sticky top-0 z-10 border-b border-slate-800 bg-slate-950/90 backdrop-blur"><div class="mx-auto flex h-16 max-w-4xl items-center gap-3 px-5"><div class="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-pink-500 text-xl">↓</div><div><div class="text-lg font-bold">MediaGrab</div><div class="text-xs text-slate-400">Video Link Helper</div></div></div></header>
+  <main class="mx-auto max-w-4xl space-y-8 px-5 py-10">
+    <section class="space-y-3 text-center"><span class="inline-flex rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">เครื่องมือจัดการลิงก์วิดีโอ</span><h1 class="text-3xl font-bold sm:text-4xl">จัดการลิงก์วิดีโอด้วย <span class="gradient-text">MediaGrab</span></h1><p class="mx-auto max-w-2xl text-sm leading-6 text-slate-400">วาง URL เพื่อตรวจสอบและเปิดสื่อที่คุณมีสิทธิ์เข้าถึง ฟังก์ชันเล่นหรือบันทึกขึ้นอยู่กับการตั้งค่าของเว็บไซต์ต้นทางและข้อจำกัดของเบราว์เซอร์</p></section>
+    <section class="glass space-y-4 rounded-2xl p-5 shadow-2xl"><label for="media-url" class="block text-sm font-medium">URL วิดีโอหรือสตรีม</label><div class="flex flex-col gap-3 sm:flex-row"><input id="media-url" type="url" placeholder="https://example.com/video.mp4" class="min-w-0 flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-indigo-500"><button id="open-btn" class="rounded-xl bg-indigo-600 px-5 py-3 text-sm font-semibold hover:bg-indigo-500">เปิดสื่อ</button></div><p id="status" class="text-xs text-slate-400" role="status">รองรับการเปิดลิงก์สื่อโดยตรงที่เบราว์เซอร์อนุญาต</p><div id="player-wrap" class="hidden overflow-hidden rounded-xl border border-slate-800 bg-black"><video id="player" controls playsinline class="aspect-video w-full"></video></div><div id="actions" class="hidden flex-wrap gap-2"><a id="download-link" class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950" download>ดาวน์โหลดไฟล์</a><a id="open-link" target="_blank" rel="noopener noreferrer" class="rounded-lg border border-slate-700 px-4 py-2 text-sm text-slate-200">เปิดในแท็บใหม่</a></div></section>
+    <section class="grid gap-4 sm:grid-cols-3"><article class="glass rounded-xl p-4"><h2 class="mb-1 text-sm font-semibold text-sky-300">ลิงก์ตรง</h2><p class="text-xs leading-5 text-slate-400">เปิดไฟล์สื่อที่เข้าถึงได้โดยตรง เช่น MP4 หากเซิร์ฟเวอร์อนุญาตการเล่นจากเบราว์เซอร์นี้</p></article><article class="glass rounded-xl p-4"><h2 class="mb-1 text-sm font-semibold text-indigo-300">ข้อจำกัด CORS</h2><p class="text-xs leading-5 text-slate-400">เว็บไซต์ต้นทางอาจจำกัดการฝังหรือการดาวน์โหลดข้ามโดเมน MediaGrab ไม่สามารถข้ามข้อจำกัดเหล่านั้นได้</p></article><article class="glass rounded-xl p-4"><h2 class="mb-1 text-sm font-semibold text-pink-300">ใช้อย่างรับผิดชอบ</h2><p class="text-xs leading-5 text-slate-400">ดาวน์โหลดเฉพาะเนื้อหาที่คุณเป็นเจ้าของหรือได้รับอนุญาต และปฏิบัติตามข้อกำหนดของบริการต้นทาง</p></article></section>
+    <footer class="border-t border-slate-800 pt-5 text-center text-xs text-slate-500">MediaGrab เป็นหน้าเว็บแบบ Static ไม่มี backend และไม่รับรองการใช้งานกับทุกเว็บไซต์</footer>
+  </main>
+  <script>
+    const input=document.getElementById('media-url'),player=document.getElementById('player'),wrap=document.getElementById('player-wrap'),actions=document.getElementById('actions'),status=document.getElementById('status'),download=document.getElementById('download-link'),openLink=document.getElementById('open-link');
+    document.getElementById('open-btn').addEventListener('click',()=>{let url;try{url=new URL(input.value.trim());if(!['http:','https:'].includes(url.protocol))throw new Error();}catch{status.textContent='กรุณาใส่ URL ที่ถูกต้อง (http หรือ https)';status.className='text-xs text-rose-300';return;}player.pause();player.removeAttribute('src');player.load();player.src=url.href;wrap.classList.remove('hidden');actions.classList.remove('hidden');download.href=url.href;download.download=url.pathname.split('/').pop()||'media';openLink.href=url.href;status.textContent='กำลังเปิดสื่อ หากเล่นไม่ได้ อาจเป็นข้อจำกัดของรูปแบบไฟล์หรือเว็บไซต์ต้นทาง';status.className='text-xs text-slate-400';player.onerror=()=>{status.textContent='ไม่สามารถเล่นสื่อนี้ได้ เบราว์เซอร์หรือเซิร์ฟเวอร์ต้นทางอาจไม่รองรับ';status.className='text-xs text-amber-300';};});
+    input.addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('open-btn').click();});
+  </script>
+</body>
+</html>
