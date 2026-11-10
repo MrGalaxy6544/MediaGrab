@@ -1,0 +1,37 @@
+# cobalt API สำหรับ MediaGrab (ใช้ดึง Instagram / Facebook / X / YouTube ฯลฯ)
+# รัน:  docker compose up -d
+# แล้วเปิดให้เข้าถึงผ่าน HTTPS (เช่น Cloudflare Tunnel หรือ reverse proxy ที่มี SSL)
+
+services:
+  cobalt-api:
+    image: ghcr.io/imputnet/cobalt:latest
+    init: true
+    read_only: true
+    restart: unless-stopped
+    container_name: cobalt-api
+    ports:
+      - 9000:9000/tcp
+    environment:
+      # URL สาธารณะของ API ตัวนี้ (ต้องเป็น HTTPS และลงท้ายด้วย /)
+      API_URL: "https://cobalt.yourdomain.com/"
+
+      # อนุญาตให้เรียกจากหน้าเว็บ GitHub Pages ของคุณเท่านั้น
+      CORS_WILDCARD: "0"
+      CORS_URL: "https://yourname.github.io"
+
+      # (ไม่บังคับ) ไฟล์ cookies สำหรับคลิปที่ต้องล็อกอิน เช่น IG บางโพสต์
+      # COOKIE_PATH: "/cookies.json"
+
+    # volumes:
+    #   - ./cookies.json:/cookies.json
+
+    labels:
+      - com.centurylinklabs.watchtower.scope=cobalt
+
+  # อัปเดต cobalt อัตโนมัติ (แพลตฟอร์มเปลี่ยนบ่อย ควรอัปเดตเสมอ)
+  watchtower:
+    image: ghcr.io/containrrr/watchtower
+    restart: unless-stopped
+    command: --cleanup --scope cobalt --interval 900 --include-restarting
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

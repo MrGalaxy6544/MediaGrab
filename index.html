@@ -1,44 +1,911 @@
 <!DOCTYPE html>
-<html lang="th" class="dark">
+<html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MediaGrab - ดาวน์โหลดวิดีโอ TikTok, Instagram, Facebook & HLS Stream (.m3u8) ลงเครื่องจริง</title>
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['"Noto Sans Thai"','Inter','sans-serif']}}}}</script>
-    <style>
-      body{font-family:'Noto Sans Thai','Inter',sans-serif}.gradient-text{background:linear-gradient(135deg,#38bdf8,#818cf8 50%,#f472b6);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.glass-card{background:rgba(30,41,59,.78);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.08)}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediaGrab — ดาวน์โหลดวิดีโอ TikTok / IG / Facebook / HLS</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mux.js@7.0.3/dist/mux.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Noto Sans Thai', 'Inter', sans-serif; }
+  .gradient-text { background: linear-gradient(135deg,#38bdf8 0%,#818cf8 50%,#f472b6 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+  .card { background: rgba(30,41,59,.78); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,.08); }
+  .inp { width:100%; background:#0f172a; border:1px solid #334155; border-radius:.75rem; padding:.7rem .9rem; font-size:.875rem; color:#fff; }
+  .inp:focus { outline:none; box-shadow:0 0 0 2px #6366f1; border-color:transparent; }
+  .tab-active { background:#4f46e5; color:#fff; }
+</style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white">
-<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
-<div id="binary-dl-banner" class="hidden fixed bottom-5 left-5 z-50 w-80 sm:w-96 glass-card rounded-2xl p-4 shadow-2xl border border-emerald-500/40 space-y-2"><div class="flex justify-between text-xs"><span id="binary-dl-title" class="font-semibold text-emerald-300 truncate">กำลังดาวน์โหลดไฟล์...</span><span id="binary-dl-pct" class="font-mono">0%</span></div><div class="h-2 bg-slate-800 rounded-full overflow-hidden"><div id="binary-dl-bar" class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400" style="width:0%"></div></div><div id="binary-dl-meta" class="text-[11px] text-slate-400">0.00 MB</div></div>
-<header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur"><div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-2"><div class="flex items-center gap-2.5"><div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-pink-500 flex items-center justify-center text-xl">↓</div><div><span class="font-bold text-lg">MediaGrab</span><span class="hidden md:inline ml-2 text-[11px] px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300">Real File Downloader</span></div></div><nav class="flex gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 overflow-x-auto"><button data-tab="downloader" class="tab px-3 py-1.5 rounded-lg text-xs bg-indigo-600">หน้าดาวน์โหลด</button><button data-tab="stream" class="tab px-3 py-1.5 rounded-lg text-xs text-slate-400">เว็บหนัง (.m3u8 / MP4)</button><button data-tab="history" class="tab px-3 py-1.5 rounded-lg text-xs text-slate-400">ประวัติ <span id="history-badge">0</span></button><button data-tab="settings" class="tab px-3 py-1.5 rounded-lg text-xs text-slate-400">ตั้งค่า API</button></nav></div></header>
-<main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-<section id="view-downloader" class="view space-y-8"><div class="text-center space-y-3"><div class="inline-flex px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs text-slate-300">ระบบจัดการลิงก์วิดีโอ • TikTok, Instagram, Facebook & .m3u8</div><h1 class="text-3xl sm:text-4xl font-bold">ดาวน์โหลดคลิปจาก <span class="gradient-text">TikTok, IG, Facebook</span></h1><p class="text-sm text-slate-400">วางลิงก์วิดีโอหรือสตรีมที่คุณมีสิทธิ์ใช้งาน เพื่อเปิดพรีวิวและบันทึกไฟล์เมื่อแหล่งที่มาอนุญาต</p></div>
-<div class="flex flex-wrap justify-center gap-2 text-xs"><span class="px-3 py-1.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">รองรับอัตโนมัติ</span><span class="px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800">TikTok</span><span class="px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800">Instagram Reels / Post</span><span class="px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800">Facebook Watch / Reels</span><button id="jump-stream" class="px-3 py-1.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30">ไปที่โหมด .m3u8 / MP4 →</button></div>
-<div class="glass-card rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4"><div class="flex flex-col sm:flex-row gap-3"><input id="url-input" type="url" placeholder="วางลิงก์ TikTok, Instagram, Facebook หรือไฟล์ .mp4 / .m3u8 ที่นี่..." class="flex-1 px-4 py-3.5 bg-slate-900 border border-slate-700 rounded-xl text-sm outline-none focus:ring-2 focus:ring-indigo-500"><button id="btn-fetch" class="px-6 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-indigo-600 to-pink-600">ดึงข้อมูลคลิป</button></div><div class="flex flex-wrap justify-between gap-2 border-t border-slate-800 pt-3 text-xs text-slate-400"><span>ตัวอย่าง:</span><button class="sample px-2 py-1 rounded bg-slate-900" data-url="https://www.tiktok.com/">TikTok</button><button class="sample px-2 py-1 rounded bg-slate-900" data-url="https://www.instagram.com/">Instagram</button><button class="sample px-2 py-1 rounded bg-slate-900" data-url="https://www.facebook.com/">Facebook</button><span>โหมด: <strong id="mode-pill" class="text-emerald-300">Auto</strong></span></div></div>
-<div id="result-card" class="hidden glass-card rounded-2xl p-5 space-y-4"><div class="flex justify-between"><span id="res-platform" class="text-xs text-indigo-300">Media</span><span id="res-author" class="text-xs text-slate-400"></span></div><h2 id="res-title" class="font-bold"></h2><p id="res-desc" class="text-xs text-slate-400">พรีวิวไฟล์สื่อที่คุณมีสิทธิ์เข้าถึง</p><video id="social-player" controls playsinline class="w-full max-h-[480px] bg-black rounded-xl"></video><div id="formats" class="flex flex-wrap gap-2"></div></div>
-<div class="grid sm:grid-cols-3 gap-4 text-xs"><article class="glass-card rounded-xl p-4"><h3 class="font-semibold text-emerald-300">1. เปิดไฟล์สื่อ</h3><p class="text-slate-400 mt-1">เปิดลิงก์ตรงเมื่อเบราว์เซอร์และเซิร์ฟเวอร์อนุญาต</p></article><article class="glass-card rounded-xl p-4"><h3 class="font-semibold text-sky-300">2. ข้อจำกัดของต้นทาง</h3><p class="text-slate-400 mt-1">CORS, การยืนยันตัวตน และข้อกำหนดของบริการอาจจำกัดการเข้าถึง</p></article><article class="glass-card rounded-xl p-4"><h3 class="font-semibold text-amber-300">3. ใช้อย่างรับผิดชอบ</h3><p class="text-slate-400 mt-1">ใช้เฉพาะเนื้อหาที่คุณเป็นเจ้าของหรือได้รับอนุญาต</p></article></div></section>
-<section id="view-stream" class="view hidden space-y-6"><div><span class="text-xs text-amber-300">HLS / Direct Stream Player</span><h2 class="text-2xl font-bold mt-2">โหมดวิดีโอ (.m3u8 / Direct MP4)</h2><p class="text-sm text-slate-400 mt-1">เปิดสตรีมที่เข้าถึงได้โดยตรงในเบราว์เซอร์ ความสำเร็จขึ้นอยู่กับการรองรับ CORS และสิทธิ์จากต้นทาง</p></div><div class="glass-card rounded-2xl p-5 space-y-4"><div class="flex flex-col sm:flex-row gap-3"><input id="stream-input" type="url" placeholder="วางลิงก์ .m3u8 หรือ .mp4..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm"><button id="analyze" class="px-5 py-3 rounded-xl bg-amber-500 text-slate-950 font-semibold text-sm">เปิดสตรีม</button></div><video id="stream-player" controls playsinline class="w-full aspect-video bg-black rounded-xl"></video><div id="stream-status" class="text-xs text-slate-400">พร้อมเปิดสตรีม</div><a id="stream-download" class="hidden inline-block rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950" download>ดาวน์โหลดไฟล์</a></div><div class="glass-card rounded-2xl p-5 text-xs text-slate-400"><h3 class="font-bold text-amber-300 mb-2">ข้อควรทราบ</h3><p>บางเว็บไซต์จำกัดการฝังวิดีโอหรือการดึงข้อมูลข้ามโดเมน (CORS) หน้าเว็บนี้ไม่ข้ามมาตรการของเว็บไซต์หรือการควบคุมสิทธิ์</p></div></section>
-<section id="view-history" class="view hidden space-y-4"><div class="flex justify-between items-center"><div><h2 class="text-xl font-bold">ประวัติการเปิดลิงก์</h2><p class="text-xs text-slate-400">บันทึกไว้ในเบราว์เซอร์เครื่องนี้</p></div><button id="clear-history" class="text-xs text-rose-300">ล้างประวัติ</button></div><div id="history-list" class="space-y-3"></div></section>
-<section id="view-settings" class="view hidden"><div class="glass-card rounded-2xl p-6 space-y-4"><h2 class="text-xl font-bold">ตั้งค่า</h2><p class="text-sm text-slate-400">ตั้งค่าโหมดการใช้งานในเบราว์เซอร์นี้</p><label class="block text-xs text-slate-300">โหมดการทำงาน<select id="setting-mode" class="block mt-2 w-full bg-slate-900 border border-slate-700 rounded-xl p-3"><option value="auto">Auto</option><option value="live">Live API</option><option value="demo">Demo</option></select></label><div class="flex justify-end"><button id="save-settings" class="px-4 py-2 rounded-lg bg-indigo-600 text-sm">บันทึกการตั้งค่า</button></div></div></section>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+<div id="toasts" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm"></div>
+
+<!-- Download progress banner -->
+<div id="dl-banner" class="hidden fixed bottom-5 left-5 z-50 w-80 sm:w-96 card rounded-2xl p-4 shadow-2xl border border-emerald-500/40 space-y-2">
+  <div class="flex items-center justify-between text-xs">
+    <span id="dl-title" class="font-semibold text-emerald-300 truncate pr-2">กำลังดาวน์โหลด…</span>
+    <span id="dl-pct" class="font-mono font-bold">0%</span>
+  </div>
+  <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+    <div id="dl-bar" class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-150" style="width:0%"></div>
+  </div>
+  <div id="dl-meta" class="text-[11px] text-slate-400 font-mono">0.00 MB</div>
+</div>
+
+<header class="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+  <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2.5 shrink-0">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 via-indigo-500 to-pink-500 flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+      </div>
+      <span class="font-bold text-lg tracking-tight">MediaGrab</span>
+    </div>
+    <nav class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 overflow-x-auto">
+      <button data-tab="social" class="tab-btn tab-active px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap">โซเชียล</button>
+      <button data-tab="stream" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 whitespace-nowrap">HLS / ลิงก์ตรง</button>
+      <button data-tab="history" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 whitespace-nowrap">ประวัติ <span id="history-count" class="ml-1 px-1.5 text-[10px] rounded-full bg-slate-800">0</span></button>
+      <button data-tab="settings" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 whitespace-nowrap">ตั้งค่า <span id="settings-dot" class="hidden ml-1 inline-block w-2 h-2 rounded-full bg-amber-400"></span></button>
+    </nav>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 py-8 space-y-8">
+
+<!-- ===================== SOCIAL ===================== -->
+<section id="view-social" class="space-y-6">
+  <div class="text-center space-y-2">
+    <h1 class="text-2xl sm:text-4xl font-bold tracking-tight">ดาวน์โหลดคลิปจาก <span class="gradient-text">TikTok, IG, Facebook</span></h1>
+    <p class="text-sm text-slate-400">วางลิงก์โพสต์หรือคลิป แล้วกดดึงข้อมูล ไฟล์จะถูกบันทึกลงโฟลเดอร์ Downloads ของเครื่อง</p>
+  </div>
+
+  <div class="card rounded-2xl p-4 sm:p-6 space-y-3">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <div class="relative flex-1">
+        <input id="url-input" type="url" placeholder="วางลิงก์ TikTok / Instagram / Facebook / X / YouTube …" class="inp pr-20 py-3.5">
+        <button id="btn-paste" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700">วาง</button>
+      </div>
+      <button id="btn-fetch" type="button" class="px-6 py-3.5 rounded-xl font-semibold bg-gradient-to-r from-indigo-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 disabled:opacity-60">
+        <span id="fetch-label">ดึงข้อมูล</span>
+      </button>
+    </div>
+    <div id="engine-status" class="text-xs text-slate-400 flex flex-wrap gap-x-4 gap-y-1"></div>
+  </div>
+
+  <div id="social-error" class="hidden card rounded-2xl p-4 border border-rose-500/40 text-sm text-rose-200"></div>
+
+  <div id="result-card" class="hidden card rounded-2xl p-5 border border-indigo-500/30">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-5">
+      <div class="md:col-span-4">
+        <div class="rounded-xl overflow-hidden bg-black border border-slate-800 aspect-[3/4] flex items-center justify-center">
+          <img id="res-thumb" referrerpolicy="no-referrer" class="w-full h-full object-cover hidden" alt="">
+          <span id="res-thumb-empty" class="text-xs text-slate-500">ไม่มีภาพตัวอย่าง</span>
+        </div>
+      </div>
+      <div class="md:col-span-8 space-y-3">
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+          <span id="res-platform" class="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold"></span>
+          <span id="res-author" class="text-slate-400"></span>
+          <span id="res-source" class="text-slate-500"></span>
+        </div>
+        <h2 id="res-title" class="text-base sm:text-lg font-bold leading-snug break-words"></h2>
+        <div id="res-items" class="space-y-2"></div>
+        <p class="text-[11px] text-slate-500">ถ้ากด "ดาวน์โหลด" แล้วไม่ได้ไฟล์ (เซิร์ฟเวอร์ต้นทางบล็อก CORS) ให้กด "เปิดลิงก์" แล้วคลิกขวาที่วิดีโอ → บันทึกวิดีโอเป็น… หรือตั้งค่า Proxy ในแท็บตั้งค่า</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== STREAM ===================== -->
+<section id="view-stream" class="hidden space-y-6">
+  <div class="space-y-1">
+    <h2 class="text-2xl font-bold">ดาวน์โหลด HLS (.m3u8) หรือไฟล์วิดีโอตรง</h2>
+    <p class="text-sm text-slate-400">อ่านเพลย์ลิสต์ .m3u8 ดึงทุกชิ้นส่วนมารวมในเบราว์เซอร์ แล้วแปลงเป็น .mp4 ให้ ใช้ได้กับสตรีมที่ไม่เข้ารหัสเท่านั้น (ไม่รองรับ DRM หรือ AES-128)</p>
+  </div>
+
+  <div class="card rounded-2xl p-4 sm:p-6 space-y-3 border border-amber-500/20">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <input id="stream-url" type="url" placeholder="วางลิงก์ .m3u8 หรือ .mp4 …" class="inp py-3.5 flex-1">
+      <button id="btn-analyze" type="button" class="px-5 py-3.5 rounded-xl font-semibold text-sm bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 shrink-0">วิเคราะห์</button>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label class="block text-[11px] text-slate-400 mb-1">Referer (ถ้าเซิร์ฟเวอร์ต้องการ — ใช้ได้เมื่อตั้งค่า Proxy)</label>
+        <input id="stream-referer" type="url" placeholder="https://หน้าเว็บที่เล่นวิดีโอ/" class="inp">
+      </div>
+      <div class="flex items-end gap-2 text-xs flex-wrap">
+        <span class="text-slate-400">ลองตัวอย่าง:</span>
+        <button data-sample="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" class="stream-sample px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-800">HLS ทดสอบ (Mux)</button>
+        <button data-sample="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4" class="stream-sample px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-slate-800">MP4 ตรง</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="stream-panel" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div class="lg:col-span-7 card rounded-2xl p-4 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <span id="stream-kind" class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-amber-500 text-slate-950">HLS</span>
+        <span id="stream-status" class="text-xs text-slate-400 truncate"></span>
+      </div>
+      <div class="rounded-xl overflow-hidden bg-black aspect-video border border-slate-800">
+        <video id="stream-video" controls playsinline class="w-full h-full object-contain"></video>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center">
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2"><div class="text-[11px] text-slate-400">ชิ้นส่วน</div><div id="meta-segs" class="text-sm font-bold">–</div></div>
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2"><div class="text-[11px] text-slate-400">ความยาว</div><div id="meta-dur" class="text-sm font-bold">–</div></div>
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2"><div class="text-[11px] text-slate-400">การเชื่อมต่อ</div><div id="meta-route" class="text-sm font-bold">–</div></div>
+      </div>
+      <div id="stream-warn" class="hidden text-xs text-amber-300 bg-amber-500/10 border border-amber-500/30 rounded-lg p-2"></div>
+    </div>
+
+    <div class="lg:col-span-5 card rounded-2xl p-4 space-y-4">
+      <div id="hls-options" class="space-y-3">
+        <div>
+          <label class="block text-[11px] text-slate-400 mb-1">ความละเอียด</label>
+          <select id="stream-quality" class="inp"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">ขอบเขต</label>
+            <select id="stream-limit" class="inp">
+              <option value="999999">ทั้งเรื่อง</option>
+              <option value="10">10 ชิ้นแรก (ทดสอบ)</option>
+              <option value="50">50 ชิ้นแรก</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] text-slate-400 mb-1">ไฟล์ผลลัพธ์</label>
+            <select id="stream-format" class="inp">
+              <option value="mp4">MP4 (แปลงในเบราว์เซอร์)</option>
+              <option value="ts">TS (ต้นฉบับ ไม่แปลง)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-3 space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span id="merge-text" class="text-slate-300">พร้อม</span>
+          <span id="merge-pct" class="font-mono font-bold text-amber-400">0%</span>
+        </div>
+        <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+          <div id="merge-bar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-200" style="width:0%"></div>
+        </div>
+        <div id="merge-counter" class="text-[11px] text-slate-400 font-mono">–</div>
+      </div>
+
+      <div class="flex gap-2">
+        <button id="btn-stream-dl" type="button" class="flex-1 py-3 rounded-xl font-semibold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 disabled:opacity-50">ดาวน์โหลดลงเครื่อง</button>
+        <button id="btn-stream-cancel" type="button" class="hidden px-4 py-3 rounded-xl text-sm bg-rose-500/20 text-rose-300 border border-rose-500/40">ยกเลิก</button>
+      </div>
+      <p class="text-[11px] text-slate-500">ไฟล์ทั้งหมดถูกพักไว้ใน RAM ก่อนบันทึก วิดีโอยาวมาก (หลาย GB) อาจทำให้เบราว์เซอร์ค้าง กรณีนั้นใช้คำสั่ง yt-dlp ด้านล่างจะเสถียรกว่า</p>
+
+      <div class="pt-3 border-t border-slate-800 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-semibold text-slate-300">คำสั่ง yt-dlp (ทางเลือก)</span>
+          <button id="btn-copy-cmd" type="button" class="px-2.5 py-1 rounded-lg text-[11px] bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700">คัดลอก</button>
+        </div>
+        <pre id="cli-cmd" class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-emerald-300 whitespace-pre-wrap break-all"></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HISTORY ===================== -->
+<section id="view-history" class="hidden space-y-4">
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-xl font-bold">ประวัติ</h2>
+      <p class="text-xs text-slate-400">เก็บในเบราว์เซอร์นี้เท่านั้น ลิงก์ไฟล์จาก CDN มักหมดอายุ จึงต้องกด "ดึงอีกครั้ง" ก่อนดาวน์โหลด</p>
+    </div>
+    <button id="btn-clear-history" class="px-3 py-2 rounded-xl text-xs bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30">ล้างประวัติ</button>
+  </div>
+  <div id="history-list" class="space-y-3"></div>
+</section>
+
+<!-- ===================== SETTINGS ===================== -->
+<section id="view-settings" class="hidden space-y-6">
+  <div class="card rounded-2xl p-6 space-y-5">
+    <div>
+      <h2 class="text-xl font-bold">cobalt API (สำหรับ Instagram, Facebook, X, YouTube ฯลฯ)</h2>
+      <p class="text-xs text-slate-400 mt-1">GitHub Pages เป็นเว็บ static ดึงวิดีโอจาก IG/FB เองไม่ได้ ต้องมีเซิร์ฟเวอร์ cobalt ของคุณเอง (ดู README) อินสแตนซ์สาธารณะอย่าง api.cobalt.tools ไม่อนุญาตให้เว็บอื่นเรียกใช้ ต้องเป็น HTTPS เท่านั้น</p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs text-slate-300 mb-1">cobalt API URL</label>
+        <input id="set-cobalt" type="url" placeholder="https://cobalt.yourdomain.com/" class="inp">
+      </div>
+      <div>
+        <label class="block text-xs text-slate-300 mb-1">API Key (ไม่บังคับ)</label>
+        <input id="set-cobalt-key" type="password" placeholder="ถ้าเปิด API_AUTH_REQUIRED ไว้" class="inp">
+      </div>
+      <div>
+        <label class="block text-xs text-slate-300 mb-1">ความละเอียดวิดีโอที่ต้องการ</label>
+        <select id="set-quality" class="inp">
+          <option value="max">สูงสุด</option><option value="2160">2160p</option><option value="1440">1440p</option>
+          <option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option><option value="360">360p</option>
+        </select>
+      </div>
+      <div class="flex items-end"><button id="btn-test-cobalt" type="button" class="w-full px-4 py-2.5 rounded-xl text-sm bg-slate-800 hover:bg-slate-700 border border-slate-700">ทดสอบการเชื่อมต่อ cobalt</button></div>
+    </div>
+
+    <div class="pt-4 border-t border-slate-800">
+      <h3 class="font-bold">CORS Proxy (ไม่บังคับ แต่แนะนำ)</h3>
+      <p class="text-xs text-slate-400 mt-1">ใช้ Cloudflare Worker ในไฟล์ <code class="text-amber-300">worker.js</code> ช่วยดึงไฟล์จากเซิร์ฟเวอร์ที่บล็อก CORS (เช่น CDN ของ TikTok หรือสตรีม HLS บางเจ้า) และส่ง Referer ให้</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+        <input id="set-proxy" type="url" placeholder="https://mediagrab-proxy.xxx.workers.dev" class="inp">
+        <button id="btn-test-proxy" type="button" class="px-4 py-2.5 rounded-xl text-sm bg-slate-800 hover:bg-slate-700 border border-slate-700">ทดสอบ Proxy</button>
+      </div>
+    </div>
+
+    <div id="test-result" class="hidden text-xs rounded-lg p-3 bg-slate-900 border border-slate-800 whitespace-pre-wrap"></div>
+
+    <div class="pt-3 flex justify-end gap-3 border-t border-slate-800">
+      <button id="btn-save-settings" type="button" class="px-5 py-2.5 rounded-xl text-sm font-semibold bg-indigo-600 hover:bg-indigo-500">บันทึก</button>
+    </div>
+  </div>
+</section>
+
+<p class="text-center text-[11px] text-slate-600">ใช้กับคอนเทนต์ที่คุณมีสิทธิ์ดาวน์โหลดเท่านั้น • ไฟล์ไม่ผ่านเซิร์ฟเวอร์ของหน้าเว็บนี้</p>
 </main>
+
 <script>
-const $=id=>document.getElementById(id);let historyItems=JSON.parse(localStorage.getItem('mediagrab_history')||'[]');
-function toast(msg,type='info'){const el=document.createElement('div');el.className=`pointer-events-auto rounded-xl border px-4 py-3 text-sm shadow-xl ${type==='error'?'bg-rose-600 border-rose-400':'bg-slate-800 border-slate-600'}`;el.textContent=msg;$('toast-container').append(el);setTimeout(()=>el.remove(),3200)}
-function platformOf(url){try{const host=new URL(url).hostname.replace(/^www\./,'');if(host.includes('tiktok'))return'TikTok';if(host.includes('instagram'))return'Instagram';if(host.includes('facebook')||host==='fb.watch')return'Facebook';return'วิดีโอ';}catch{return'วิดีโอ';}}
-function saveHistory(url,title){historyItems.unshift({url,title,at:new Date().toLocaleString('th-TH')});historyItems=historyItems.slice(0,30);localStorage.setItem('mediagrab_history',JSON.stringify(historyItems));renderHistory();}
-function renderHistory(){ $('history-badge').textContent=historyItems.length; $('history-list').innerHTML=historyItems.length?historyItems.map(item=>`<div class="glass-card rounded-xl p-4"><div class="text-sm font-semibold">${escapeHtml(item.title)}</div><a class="text-xs text-indigo-300 break-all" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.url)}</a><div class="text-[11px] text-slate-500 mt-1">${escapeHtml(item.at)}</div></div>`).join(''):'<div class="glass-card rounded-xl p-6 text-center text-sm text-slate-400">ยังไม่มีประวัติ</div>'; }
-function escapeHtml(value){return String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function showMedia(raw){let u;try{u=new URL(raw);if(!['http:','https:'].includes(u.protocol))throw 0;}catch{toast('กรุณาใส่ URL http หรือ https ที่ถูกต้อง','error');return;}const isFile=/\.(mp4|webm|ogg|m3u8)(?:$|\?)/i.test(u.href);if(/\.m3u8(?:$|\?)/i.test(u.href)){switchTab('stream');$('stream-input').value=u.href;openStream(u.href);return;}$('res-platform').textContent=platformOf(u.href);$('res-author').textContent=u.hostname;$('res-title').textContent='สื่อจาก '+u.hostname;$('social-player').src=isFile?u.href:'';$('formats').replaceChildren();if(isFile){const a=document.createElement('a');a.href=u.href;a.download=u.pathname.split('/').pop()||'video.mp4';a.className='rounded-xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-slate-950';a.textContent='บันทึก/ดาวน์โหลด (ขึ้นกับต้นทาง)';$('formats').append(a);}else{$('social-player').removeAttribute('src');$('social-player').load();$('formats').innerHTML='<a class="rounded-xl bg-slate-800 px-4 py-2 text-sm" href="'+escapeHtml(u.href)+'" target="_blank" rel="noopener noreferrer">เปิดหน้าเว็บต้นทาง</a>';}$('result-card').classList.remove('hidden');saveHistory(u.href,'สื่อจาก '+u.hostname);}
-function openStream(raw){let u;try{u=new URL(raw);if(!['http:','https:'].includes(u.protocol))throw 0;}catch{toast('กรุณาใส่ URL ที่ถูกต้อง','error');return;}const video=$('stream-player');video.pause();video.removeAttribute('src');if(window.streamHls){window.streamHls.destroy();window.streamHls=null;}if(/\.m3u8(?:$|\?)/i.test(u.href)&&window.Hls&&Hls.isSupported()){window.streamHls=new Hls();window.streamHls.loadSource(u.href);window.streamHls.attachMedia(video);window.streamHls.on(Hls.Events.ERROR,(_,data)=>{$('stream-status').textContent=data.fatal?'เล่นสตรีมไม่ได้ (ตรวจสอบ CORS/ลิงก์/สิทธิ์)':'กำลังโหลดสตรีม';});}else{video.src=u.href;}const a=$('stream-download');a.href=u.href;a.download=u.pathname.split('/').pop()||'media';a.classList.remove('hidden');$('stream-status').textContent='กำลังเปิดสตรีม — หากเล่นไม่ได้ อาจมีข้อจำกัดจากต้นทาง';saveHistory(u.href,'สตรีมจาก '+u.hostname);}
-function switchTab(name){document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));$('view-'+name).classList.remove('hidden');document.querySelectorAll('.tab').forEach(b=>{b.classList.toggle('bg-indigo-600',b.dataset.tab===name);b.classList.toggle('text-slate-400',b.dataset.tab!==name);});}
-document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));$('jump-stream').addEventListener('click',()=>switchTab('stream'));$('btn-fetch').addEventListener('click',()=>showMedia($('url-input').value.trim()));$('url-input').addEventListener('keydown',e=>{if(e.key==='Enter')showMedia($('url-input').value.trim());});document.querySelectorAll('.sample').forEach(b=>b.addEventListener('click',()=>{$('url-input').value=b.dataset.url;toast('ตัวอย่างนี้เป็นหน้าเว็บไซต์ ไม่ใช่ URL ไฟล์วิดีโอโดยตรง');}));$('analyze').addEventListener('click',()=>openStream($('stream-input').value.trim()));$('stream-input').addEventListener('keydown',e=>{if(e.key==='Enter')openStream($('stream-input').value.trim());});$('clear-history').addEventListener('click',()=>{historyItems=[];localStorage.removeItem('mediagrab_history');renderHistory();});$('save-settings').addEventListener('click',()=>{localStorage.setItem('mediagrab_mode',$('setting-mode').value);$('mode-pill').textContent=$('setting-mode').value;toast('บันทึกการตั้งค่าแล้ว');});$('setting-mode').value=localStorage.getItem('mediagrab_mode')||'auto';$('mode-pill').textContent=$('setting-mode').value;renderHistory();
+'use strict';
+const $ = (id) => document.getElementById(id);
+
+/* ---------------- settings & history ---------------- */
+const settings = { cobaltUrl: '', cobaltKey: '', proxyUrl: '', quality: '1080' };
+let history = [];
+
+function loadStore() {
+  try { Object.assign(settings, JSON.parse(localStorage.getItem('mg_settings') || '{}')); } catch (e) {}
+  try { const h = JSON.parse(localStorage.getItem('mg_history') || '[]'); if (Array.isArray(h)) history = h; } catch (e) {}
+}
+function saveSettings() { try { localStorage.setItem('mg_settings', JSON.stringify(settings)); } catch (e) {} }
+function saveHistory() { try { localStorage.setItem('mg_history', JSON.stringify(history.slice(0, 30))); } catch (e) {} }
+function addHistory(entry) {
+  history = history.filter(h => h.url !== entry.url);
+  history.unshift({ ...entry, time: new Date().toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) });
+  history = history.slice(0, 30);
+  saveHistory(); renderHistory();
+}
+
+/* ---------------- ui helpers ---------------- */
+function toast(msg, type = 'info') {
+  const t = document.createElement('div');
+  const bg = type === 'success' ? 'bg-emerald-600/95' : type === 'error' ? 'bg-rose-600/95' : 'bg-slate-800/95';
+  t.className = `${bg} text-white px-4 py-3 rounded-xl shadow-xl text-xs sm:text-sm pointer-events-auto transition-opacity duration-300`;
+  t.textContent = msg;
+  $('toasts').appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, type === 'error' ? 6000 : 3800);
+}
+const mb = (n) => (n / 1048576).toFixed(2) + ' MB';
+const fmtDur = (s) => { s = Math.round(s || 0); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), r = s % 60; return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(r).padStart(2, '0'); };
+const safeName = (s, fallback = 'video') => (String(s || '').replace(/[\\/:*?"<>|\r\n\t#]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80) || fallback);
+
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const on = b.dataset.tab === name;
+    b.classList.toggle('tab-active', on);
+    b.classList.toggle('text-slate-400', !on);
+  });
+  ['social', 'stream', 'history', 'settings'].forEach(v => $('view-' + v).classList.toggle('hidden', v !== name));
+}
+
+const dl = {
+  show(name) { $('dl-banner').classList.remove('hidden'); $('dl-title').textContent = name; $('dl-pct').textContent = '0%'; $('dl-bar').style.width = '3%'; $('dl-meta').textContent = 'กำลังเชื่อมต่อ…'; },
+  update(rcv, total) {
+    if (total > 0) { const p = Math.min(100, Math.round(rcv / total * 100)); $('dl-pct').textContent = p + '%'; $('dl-bar').style.width = p + '%'; $('dl-meta').textContent = `${mb(rcv)} / ${mb(total)}`; }
+    else { $('dl-pct').textContent = '…'; $('dl-bar').style.width = '60%'; $('dl-meta').textContent = `ได้แล้ว ${mb(rcv)}`; }
+  },
+  done(text) { $('dl-pct').textContent = '100%'; $('dl-bar').style.width = '100%'; $('dl-meta').textContent = text; setTimeout(() => $('dl-banner').classList.add('hidden'), 2500); },
+  hide() { $('dl-banner').classList.add('hidden'); }
+};
+
+/* ---------------- network ---------------- */
+function proxied(url, referer) {
+  if (!settings.proxyUrl) return null;
+  let p = settings.proxyUrl.replace(/\/+$/, '') + '/?url=' + encodeURIComponent(url);
+  if (referer) p += '&referer=' + encodeURIComponent(referer);
+  return p;
+}
+
+// Try direct first; if CORS/network/HTTP error and a proxy is configured, retry through the proxy.
+async function smartFetch(url, { headers = {}, referer = '', signal, preferProxy = false } = {}) {
+  const viaProxy = proxied(url, referer);
+  const tryDirect = async () => { const r = await fetch(url, { headers, signal }); if (!r.ok) throw new Error('HTTP ' + r.status); return { res: r, viaProxy: false }; };
+  const tryProxy = async () => { const r = await fetch(viaProxy, { headers, signal }); if (!r.ok) throw new Error('HTTP ' + r.status + ' (ผ่าน proxy)'); return { res: r, viaProxy: true }; };
+  if (preferProxy && viaProxy) return tryProxy();
+  try { return await tryDirect(); }
+  catch (e) {
+    if (signal && signal.aborted) throw e;
+    if (viaProxy) return tryProxy();
+    throw e;
+  }
+}
+
+async function readWithProgress(res, onProgress) {
+  const total = parseInt(res.headers.get('content-length') || '0', 10);
+  const type = res.headers.get('content-type') || 'application/octet-stream';
+  if (!res.body || !res.body.getReader) return res.blob();
+  const reader = res.body.getReader(); const chunks = []; let rcv = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); rcv += value.byteLength; onProgress(rcv, total);
+  }
+  return new Blob(chunks, { type });
+}
+
+function saveBlob(blob, filename) {
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = u; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(u), 120000);
+}
+
+async function downloadToDisk(url, filename, referer = '') {
+  dl.show(filename);
+  try {
+    const { res } = await smartFetch(url, { referer });
+    const blob = await readWithProgress(res, (r, t) => dl.update(r, t));
+    if (blob.size < 1024 && /json|html|text/.test(blob.type)) throw new Error('เซิร์ฟเวอร์ไม่ได้ส่งไฟล์วิดีโอกลับมา');
+    saveBlob(blob, filename);
+    dl.done('บันทึกแล้ว ' + mb(blob.size));
+    toast(`บันทึก ${filename} (${mb(blob.size)}) แล้ว`, 'success');
+    return true;
+  } catch (e) {
+    dl.hide();
+    toast(`ดึงไฟล์โดยตรงไม่ได้ (${e.message}) — กด "เปิดลิงก์" แล้วบันทึกจากแท็บใหม่ หรือตั้งค่า Proxy`, 'error');
+    return false;
+  }
+}
+
+/* ---------------- platform detection ---------------- */
+function detectPlatform(url) {
+  const u = (url || '').toLowerCase();
+  if (/\.m3u8(\?|#|$)/.test(u) || /\.(mp4|webm|mov|m4v)(\?|#|$)/.test(u)) return 'Stream';
+  if (/tiktok\.com/.test(u)) return 'TikTok';
+  if (/instagram\.com|instagr\.am/.test(u)) return 'Instagram';
+  if (/facebook\.com|fb\.watch|fb\.com/.test(u)) return 'Facebook';
+  if (/youtube\.com|youtu\.be/.test(u)) return 'YouTube';
+  if (/(twitter|x)\.com/.test(u)) return 'X';
+  return 'อื่นๆ';
+}
+
+/* ---------------- extractors ---------------- */
+async function extractTikWM(url) {
+  const r = await fetch('https://www.tikwm.com/api/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'url=' + encodeURIComponent(url) + '&hd=1'
+  });
+  const j = await r.json();
+  if (!j || j.code !== 0 || !j.data) throw new Error((j && j.msg) || 'TikWM ไม่พบคลิปนี้');
+  const d = j.data;
+  const abs = (u) => !u ? null : (u.startsWith('http') ? u : 'https://www.tikwm.com' + u);
+  const user = d.author && d.author.unique_id ? d.author.unique_id : 'tiktok';
+  const base = safeName(`tiktok_${user}_${d.id || Date.now()}`);
+  const items = [];
+  if (Array.isArray(d.images) && d.images.length) {
+    d.images.forEach((im, i) => items.push({ label: `รูปที่ ${i + 1}`, tag: 'JPG', url: im, filename: `${base}_${i + 1}.jpg` }));
+  } else {
+    if (d.hdplay) items.push({ label: 'วิดีโอ HD ไม่มีลายน้ำ', tag: d.hd_size ? mb(d.hd_size) : 'HD', url: abs(d.hdplay), filename: `${base}_hd.mp4` });
+    if (d.play) items.push({ label: 'วิดีโอ ไม่มีลายน้ำ', tag: d.size ? mb(d.size) : 'SD', url: abs(d.play), filename: `${base}.mp4` });
+    if (d.wmplay) items.push({ label: 'วิดีโอ มีลายน้ำ (ต้นฉบับ)', tag: d.wm_size ? mb(d.wm_size) : 'WM', url: abs(d.wmplay), filename: `${base}_wm.mp4` });
+  }
+  if (d.music) items.push({ label: 'เสียงอย่างเดียว', tag: 'MP3', url: abs(d.music), filename: `${base}.mp3` });
+  return { platform: 'TikTok', title: d.title || 'TikTok', author: '@' + user, thumb: abs(d.origin_cover || d.cover), source: 'ผ่าน TikWM', items };
+}
+
+const COBALT_ERRORS = {
+  'auth': 'cobalt ต้องการ API Key หรือ key ไม่ถูกต้อง',
+  'rate_exceeded': 'เรียกใช้ cobalt ถี่เกินไป รอสักครู่',
+  'link.invalid': 'ลิงก์ไม่ถูกต้อง',
+  'link.unsupported': 'cobalt ไม่รองรับลิงก์นี้',
+  'service.unsupported': 'cobalt ไม่รองรับเว็บนี้',
+  'service.disabled': 'บริการนี้ถูกปิดในอินสแตนซ์ cobalt ของคุณ',
+  'content.video.unavailable': 'คลิปไม่พร้อมใช้งาน (อาจถูกลบ ตั้งเป็นส่วนตัว หรือต้องล็อกอิน)',
+  'content.post.private': 'โพสต์เป็นส่วนตัว',
+  'content.post.age': 'คอนเทนต์จำกัดอายุ ต้องใช้ cookies ในเซิร์ฟเวอร์ cobalt',
+  'content.too_long': 'วิดีโอยาวเกินที่อินสแตนซ์กำหนด',
+  'fetch.empty': 'ไม่พบไฟล์มีเดียในโพสต์นี้',
+  'fetch.fail': 'cobalt ดึงข้อมูลจากต้นทางไม่สำเร็จ (อาจโดนบล็อก ลองใส่ cookies)',
+  'fetch.critical': 'cobalt ดึงข้อมูลไม่สำเร็จ'
+};
+function cobaltErrorText(code = '') {
+  for (const k of Object.keys(COBALT_ERRORS)) if (code.includes(k)) return COBALT_ERRORS[k] + ` (${code})`;
+  return 'cobalt แจ้งข้อผิดพลาด: ' + (code || 'ไม่ทราบสาเหตุ');
+}
+
+async function cobaltRequest(url, downloadMode = 'auto') {
+  if (!settings.cobaltUrl) { const e = new Error('NEED_COBALT'); e.needCobalt = true; throw e; }
+  const headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+  if (settings.cobaltKey) headers['Authorization'] = 'Api-Key ' + settings.cobaltKey;
+  let r;
+  try {
+    r = await fetch(settings.cobaltUrl.replace(/\/+$/, '') + '/', {
+      method: 'POST', headers,
+      body: JSON.stringify({ url, downloadMode, videoQuality: settings.quality, alwaysProxy: true, filenameStyle: 'basic' })
+    });
+  } catch (e) {
+    throw new Error('ติดต่อเซิร์ฟเวอร์ cobalt ไม่ได้ (เช็ก URL, HTTPS และการตั้งค่า CORS ของ cobalt)');
+  }
+  const j = await r.json().catch(() => null);
+  if (!j) throw new Error('cobalt ตอบกลับไม่ใช่ JSON (HTTP ' + r.status + ')');
+  return j;
+}
+
+function cobaltToItems(j, base) {
+  if (j.status === 'error') throw new Error(cobaltErrorText(j.error && j.error.code));
+  if (j.status === 'tunnel' || j.status === 'redirect') {
+    return [{ label: 'ไฟล์วิดีโอ', tag: settings.quality === 'max' ? 'MAX' : settings.quality + 'p', url: j.url, filename: safeName(j.filename || base + '.mp4') }];
+  }
+  if (j.status === 'picker') {
+    const ext = { photo: 'jpg', video: 'mp4', gif: 'gif' };
+    const items = (j.picker || []).map((p, i) => ({ label: `${p.type === 'photo' ? 'รูป' : 'วิดีโอ'} ${i + 1}`, tag: (ext[p.type] || 'file').toUpperCase(), url: p.url, filename: `${base}_${i + 1}.${ext[p.type] || 'bin'}` }));
+    if (j.audio) items.push({ label: 'เสียงประกอบ', tag: 'AUDIO', url: j.audio, filename: safeName(j.audioFilename || base + '.mp3') });
+    return items;
+  }
+  if (j.status === 'local-processing') {
+    if (Array.isArray(j.tunnel) && j.tunnel.length === 1) {
+      return [{ label: 'ไฟล์มีเดีย', tag: 'FILE', url: j.tunnel[0], filename: safeName((j.output && j.output.filename) || base + '.mp4') }];
+    }
+    throw new Error('คลิปนี้ต้องรวมไฟล์ภาพ+เสียงเอง ให้ตั้งค่า cobalt ไม่ให้บังคับ local processing');
+  }
+  throw new Error('cobalt ตอบสถานะที่ไม่รู้จัก: ' + j.status);
+}
+
+async function extractCobalt(url, platform) {
+  const j = await cobaltRequest(url, 'auto');
+  const base = safeName(`${platform.toLowerCase()}_${Date.now()}`);
+  const items = cobaltToItems(j, base);
+  if (j.status !== 'picker') {
+    items.push({ label: 'เสียงอย่างเดียว', tag: 'AUDIO', lazy: async () => cobaltToItems(await cobaltRequest(url, 'audio'), base + '_audio')[0] });
+  }
+  return { platform, title: (j.filename || j.output?.filename || `${platform} media`).replace(/\.[a-z0-9]+$/i, ''), author: '', thumb: j.picker && j.picker[0] && j.picker[0].thumb, source: 'ผ่าน cobalt', items };
+}
+
+/* ---------------- social flow ---------------- */
+function showSocialError(msg, withSettingsBtn) {
+  const box = $('social-error');
+  box.textContent = msg;
+  if (withSettingsBtn) {
+    const b = document.createElement('button');
+    b.className = 'ml-2 underline text-indigo-300'; b.textContent = 'ไปที่ตั้งค่า';
+    b.onclick = () => switchTab('settings');
+    box.appendChild(b);
+  }
+  box.classList.remove('hidden');
+}
+
+async function handleFetch() {
+  const url = $('url-input').value.trim();
+  $('social-error').classList.add('hidden');
+  if (!/^https?:\/\//i.test(url)) { toast('กรุณาวางลิงก์ที่ขึ้นต้นด้วย http:// หรือ https://', 'error'); return; }
+  const platform = detectPlatform(url);
+  if (platform === 'Stream') { $('stream-url').value = url; switchTab('stream'); analyzeStream(url); return; }
+
+  const btn = $('btn-fetch'); btn.disabled = true; $('fetch-label').textContent = 'กำลังดึง…';
+  $('result-card').classList.add('hidden');
+  try {
+    let result = null, firstErr = null;
+    if (platform === 'TikTok') {
+      try { result = await extractTikWM(url); } catch (e) { firstErr = e; }
+    }
+    if (!result) {
+      try { result = await extractCobalt(url, platform); }
+      catch (e) {
+        if (e.needCobalt) {
+          showSocialError(platform === 'TikTok'
+            ? `TikWM ดึงคลิปนี้ไม่ได้ (${firstErr ? firstErr.message : ''}) และยังไม่ได้ตั้งค่า cobalt สำรองไว้`
+            : `${platform} ต้องใช้เซิร์ฟเวอร์ cobalt ของคุณเอง ยังไม่ได้ตั้งค่า`, true);
+          return;
+        }
+        throw e;
+      }
+    }
+    if (!result.items.length) throw new Error('ไม่พบไฟล์ที่ดาวน์โหลดได้');
+    renderResult(result);
+    addHistory({ url, platform: result.platform, title: result.title });
+  } catch (e) {
+    showSocialError(e.message || String(e));
+  } finally {
+    btn.disabled = false; $('fetch-label').textContent = 'ดึงข้อมูล';
+  }
+}
+
+function renderResult(r) {
+  $('res-platform').textContent = r.platform;
+  $('res-author').textContent = r.author || '';
+  $('res-source').textContent = r.source || '';
+  $('res-title').textContent = r.title || '';
+  const img = $('res-thumb');
+  if (r.thumb) { img.src = r.thumb; img.classList.remove('hidden'); $('res-thumb-empty').classList.add('hidden'); img.onerror = () => { img.classList.add('hidden'); $('res-thumb-empty').classList.remove('hidden'); }; }
+  else { img.classList.add('hidden'); $('res-thumb-empty').classList.remove('hidden'); }
+
+  const box = $('res-items'); box.innerHTML = '';
+  r.items.forEach((it, idx) => {
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = (idx === 0
+      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-semibold'
+      : 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700') + ' flex-1 px-4 py-2.5 rounded-xl text-sm flex items-center justify-between gap-2';
+    const l = document.createElement('span'); l.textContent = '⬇ ดาวน์โหลด ' + it.label;
+    const t = document.createElement('span'); t.className = 'text-[10px] font-mono opacity-80'; t.textContent = it.tag || '';
+    btn.append(l, t);
+    const open = document.createElement('a');
+    open.className = 'px-3 py-2.5 rounded-xl text-xs bg-slate-800 hover:bg-slate-700 border border-slate-700 whitespace-nowrap';
+    open.textContent = 'เปิดลิงก์'; open.target = '_blank'; open.rel = 'noopener noreferrer';
+    if (it.url) open.href = it.url; else open.classList.add('hidden');
+
+    btn.onclick = async () => {
+      btn.disabled = true;
+      try {
+        let target = it;
+        if (it.lazy) {
+          target = await it.lazy();
+          it.url = target.url; it.filename = target.filename; it.lazy = null;
+          open.href = target.url; open.classList.remove('hidden');
+        }
+        await downloadToDisk(target.url, target.filename);
+      } catch (e) { toast(e.message, 'error'); }
+      finally { btn.disabled = false; }
+    };
+    row.append(btn, open);
+    box.appendChild(row);
+  });
+  $('result-card').classList.remove('hidden');
+}
+
+/* ---------------- HLS ---------------- */
+function parseAttrs(line) {
+  const out = {}; const re = /([A-Z0-9-]+)=("[^"]*"|[^,]*)/g; let m;
+  while ((m = re.exec(line))) out[m[1]] = m[2].replace(/^"|"$/g, '');
+  return out;
+}
+
+function parseM3U8(text, baseUrl) {
+  const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  if (!lines.length || !lines[0].startsWith('#EXTM3U')) throw new Error('ไฟล์นี้ไม่ใช่เพลย์ลิสต์ m3u8');
+  const abs = (u) => new URL(u, baseUrl).href;
+  const out = { variants: [], audioGroups: {}, segments: [], map: null, encrypted: false, encryptMethod: '', duration: 0, isLive: !text.includes('#EXT-X-ENDLIST') };
+  let dur = 0, range = null, nextOffset = 0;
+  const parseRange = (s) => { const [len, off] = s.split('@'); const start = off !== undefined ? parseInt(off, 10) : nextOffset; const end = start + parseInt(len, 10) - 1; nextOffset = end + 1; return { start, end }; };
+
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (l.startsWith('#EXT-X-STREAM-INF')) {
+      const a = parseAttrs(l.slice(18));
+      let j = i + 1; while (j < lines.length && lines[j].startsWith('#')) j++;
+      if (j < lines.length) { out.variants.push({ bandwidth: +a.BANDWIDTH || 0, resolution: a.RESOLUTION || '', audio: a.AUDIO || '', url: abs(lines[j]) }); i = j; }
+    } else if (l.startsWith('#EXT-X-MEDIA')) {
+      const a = parseAttrs(l.slice(13));
+      if (a.TYPE === 'AUDIO' && a.URI) (out.audioGroups[a['GROUP-ID']] = out.audioGroups[a['GROUP-ID']] || []).push({ name: a.NAME, url: abs(a.URI) });
+    } else if (l.startsWith('#EXT-X-KEY')) {
+      const a = parseAttrs(l.slice(11));
+      if (a.METHOD && a.METHOD !== 'NONE') { out.encrypted = true; out.encryptMethod = a.METHOD; }
+    } else if (l.startsWith('#EXT-X-MAP')) {
+      const a = parseAttrs(l.slice(11));
+      out.map = { url: abs(a.URI), range: a.BYTERANGE ? parseRange(a.BYTERANGE) : null };
+    } else if (l.startsWith('#EXTINF:')) {
+      dur = parseFloat(l.slice(8)) || 0;
+    } else if (l.startsWith('#EXT-X-BYTERANGE:')) {
+      range = parseRange(l.slice(17));
+    } else if (!l.startsWith('#')) {
+      out.segments.push({ url: abs(l), range });
+      out.duration += dur; dur = 0; range = null;
+    }
+  }
+  out.variants.sort((a, b) => b.bandwidth - a.bandwidth);
+  return out;
+}
+
+const stream = { url: '', kind: '', master: null, media: null, mediaUrl: '', viaProxy: false, referer: '', hls: null, abort: null, busy: false };
+
+async function fetchPlaylist(url) {
+  const { res, viaProxy } = await smartFetch(url, { referer: stream.referer, preferProxy: stream.viaProxy });
+  if (viaProxy) stream.viaProxy = true;
+  return parseM3U8(await res.text(), url);
+}
+
+function setStreamStatus(t) { $('stream-status').textContent = t; }
+function showStreamWarn(msg) { const w = $('stream-warn'); if (msg) { w.textContent = msg; w.classList.remove('hidden'); } else w.classList.add('hidden'); }
+
+function updateCli() {
+  const ref = stream.referer ? `--referer "${stream.referer}" ` : '';
+  $('cli-cmd').textContent = `yt-dlp ${ref}-N 8 "${stream.url}" -o "video.%(ext)s"`;
+}
+
+async function loadMediaPlaylist(idx) {
+  const v = stream.master && stream.master.variants[idx];
+  if (v) { stream.media = await fetchPlaylist(v.url); stream.mediaUrl = v.url; }
+  const m = stream.media;
+  $('meta-segs').textContent = m.segments.length + (m.map ? ' (fMP4)' : ' (.ts)');
+  $('meta-dur').textContent = m.isLive ? 'สด' : fmtDur(m.duration);
+  $('meta-route').textContent = stream.viaProxy ? 'ผ่าน Proxy' : 'ตรง';
+  $('merge-counter').textContent = `0 / ${m.segments.length} ชิ้น`;
+  const warns = [];
+  if (m.encrypted) warns.push(`สตรีมนี้เข้ารหัส (${m.encryptMethod}) — ไม่รองรับการดาวน์โหลด`);
+  if (m.isLive) warns.push('เป็นสตรีมสด จะได้เฉพาะช่วงที่อยู่ในเพลย์ลิสต์ตอนนี้');
+  if (v && v.audio && stream.master.audioGroups[v.audio]) warns.push('สตรีมนี้แยกแทร็กเสียงไว้ต่างหาก ไฟล์ที่ได้อาจไม่มีเสียง แนะนำใช้คำสั่ง yt-dlp ด้านล่าง');
+  showStreamWarn(warns.join(' • '));
+  $('btn-stream-dl').disabled = m.encrypted || !m.segments.length;
+  if (m.map) { $('stream-format').value = 'mp4'; $('stream-format').disabled = true; } else $('stream-format').disabled = false;
+}
+
+async function analyzeStream(rawUrl) {
+  const url = (rawUrl || $('stream-url').value).trim();
+  if (!/^https?:\/\//i.test(url)) { toast('กรุณาวางลิงก์ .m3u8 หรือ .mp4', 'error'); return; }
+  if (stream.hls) { stream.hls.destroy(); stream.hls = null; }
+  Object.assign(stream, { url, master: null, media: null, viaProxy: false, referer: $('stream-referer').value.trim() });
+  const isHls = /\.m3u8(\?|#|$)/i.test(url);
+  stream.kind = isHls ? 'hls' : 'file';
+  $('stream-panel').classList.remove('hidden');
+  $('stream-kind').textContent = isHls ? 'HLS' : 'ไฟล์ตรง';
+  $('hls-options').classList.toggle('hidden', !isHls);
+  showStreamWarn(''); resetMergeUI(); updateCli();
+  const video = $('stream-video');
+  video.removeAttribute('src'); video.load();
+
+  if (!isHls) {
+    $('meta-segs').textContent = '1 ไฟล์'; $('meta-dur').textContent = '–'; $('meta-route').textContent = 'ตรง';
+    $('btn-stream-dl').disabled = false;
+    video.src = url;
+    video.onloadedmetadata = () => { $('meta-dur').textContent = fmtDur(video.duration); };
+    setStreamStatus('พร้อมดาวน์โหลด');
+    addHistory({ url, platform: 'ไฟล์ตรง', title: decodeURIComponent(url.split('/').pop().split('?')[0]) || url });
+    return;
+  }
+
+  setStreamStatus('กำลังอ่านเพลย์ลิสต์…');
+  $('btn-stream-dl').disabled = true;
+  try {
+    const top = await fetchPlaylist(url);
+    const sel = $('stream-quality'); sel.innerHTML = '';
+    if (top.variants.length) {
+      stream.master = top;
+      top.variants.forEach((v, i) => {
+        const o = document.createElement('option'); o.value = String(i);
+        o.textContent = `${v.resolution || 'ไม่ระบุ'} • ${Math.round(v.bandwidth / 1000)} kbps`;
+        sel.appendChild(o);
+      });
+      await loadMediaPlaylist(0);
+    } else {
+      stream.media = top; stream.mediaUrl = url;
+      sel.innerHTML = '<option value="0">ตามต้นฉบับ</option>';
+      await loadMediaPlaylist(-1);
+    }
+    setStreamStatus('พร้อมดาวน์โหลด');
+    addHistory({ url, platform: 'HLS', title: decodeURIComponent(url.split('/').slice(-2).join('/').split('?')[0]) });
+  } catch (e) {
+    setStreamStatus('');
+    showStreamWarn(`อ่านเพลย์ลิสต์ไม่ได้: ${e.message}. ถ้าเป็นเพราะ CORS ให้ตั้งค่า Proxy ในแท็บตั้งค่า หรือใช้คำสั่ง yt-dlp`);
+    return;
+  }
+
+  // Preview (direct only — hls.js resolves relative URLs against the proxy URL, which breaks)
+  if (!stream.viaProxy && window.Hls && Hls.isSupported()) {
+    stream.hls = new Hls(); stream.hls.loadSource(url); stream.hls.attachMedia(video);
+  } else if (!stream.viaProxy && video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+  } else {
+    setStreamStatus('พร้อมดาวน์โหลด (พรีวิวไม่ได้เมื่อผ่าน Proxy)');
+  }
+}
+
+function resetMergeUI() {
+  $('merge-text').textContent = 'พร้อม'; $('merge-pct').textContent = '0%'; $('merge-bar').style.width = '0%'; $('merge-counter').textContent = '–';
+}
+
+async function fetchSegment(seg, signal) {
+  const headers = seg.range ? { Range: `bytes=${seg.range.start}-${seg.range.end}` } : {};
+  let lastErr;
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const { res, viaProxy } = await smartFetch(seg.url, { headers, signal, referer: stream.referer, preferProxy: stream.viaProxy });
+      if (viaProxy) stream.viaProxy = true;
+      return await res.arrayBuffer();
+    } catch (e) {
+      if (signal.aborted) throw e;
+      lastErr = e; await new Promise(r => setTimeout(r, 600 * (attempt + 1)));
+    }
+  }
+  throw lastErr;
+}
+
+function transmuxToMp4(buffers) {
+  const t = new muxjs.mp4.Transmuxer({ remux: true });
+  const parts = []; let init = null;
+  t.on('data', (seg) => { if (!init) { init = seg.initSegment; parts.push(init); } parts.push(seg.data); });
+  for (const b of buffers) t.push(new Uint8Array(b));
+  t.flush();
+  if (!init) throw new Error('แปลงเป็น MP4 ไม่สำเร็จ');
+  return new Blob(parts, { type: 'video/mp4' });
+}
+
+async function downloadStream() {
+  if (stream.busy) return;
+  if (stream.kind === 'file') {
+    const name = safeName(decodeURIComponent(stream.url.split('/').pop().split('?')[0]), 'video.mp4');
+    await downloadToDisk(stream.url, /\.\w{2,4}$/.test(name) ? name : name + '.mp4', stream.referer);
+    return;
+  }
+  const m = stream.media;
+  if (!m || m.encrypted) return;
+
+  const limit = parseInt($('stream-limit').value, 10);
+  const segs = m.segments.slice(0, limit);
+  const total = segs.length;
+  const results = new Array(total);
+  let next = 0, done = 0, bytes = 0;
+  const ctrl = new AbortController();
+  stream.abort = ctrl; stream.busy = true;
+  $('btn-stream-dl').disabled = true; $('btn-stream-cancel').classList.remove('hidden');
+  const t0 = Date.now();
+
+  const update = () => {
+    const pct = Math.round(done / total * 100);
+    const speed = bytes / Math.max(1, (Date.now() - t0) / 1000);
+    $('merge-text').textContent = `กำลังดึงชิ้นที่ ${done} / ${total}`;
+    $('merge-pct').textContent = pct + '%'; $('merge-bar').style.width = pct + '%';
+    $('merge-counter').textContent = `${done} / ${total} ชิ้น • ${mb(bytes)} • ${mb(speed)}/s`;
+  };
+
+  try {
+    const worker = async () => {
+      while (next < total) {
+        const i = next++;
+        const buf = await fetchSegment(segs[i], ctrl.signal);
+        results[i] = buf; done++; bytes += buf.byteLength; update();
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(6, total) }, worker));
+
+    const base = safeName(stream.url.split('/').slice(-2, -1)[0] || 'video');
+    let blob, filename;
+    if (m.map) {
+      $('merge-text').textContent = 'กำลังรวมไฟล์…';
+      const init = await fetchSegment(m.map, ctrl.signal);
+      blob = new Blob([init, ...results], { type: 'video/mp4' }); filename = base + '.mp4';
+    } else if ($('stream-format').value === 'mp4' && window.muxjs) {
+      $('merge-text').textContent = 'กำลังแปลง TS → MP4…';
+      await new Promise(r => setTimeout(r, 30));
+      try { blob = transmuxToMp4(results); filename = base + '.mp4'; }
+      catch (e) { toast('แปลง MP4 ไม่สำเร็จ บันทึกเป็น .ts แทน', 'info'); blob = new Blob(results, { type: 'video/mp2t' }); filename = base + '.ts'; }
+    } else {
+      blob = new Blob(results, { type: 'video/mp2t' }); filename = base + '.ts';
+    }
+    results.length = 0;
+    saveBlob(blob, filename);
+    $('merge-text').textContent = `บันทึก ${filename} แล้ว (${mb(blob.size)})`;
+    toast(`บันทึก ${filename} (${mb(blob.size)}) แล้ว`, 'success');
+  } catch (e) {
+    if (ctrl.signal.aborted) { $('merge-text').textContent = 'ยกเลิกแล้ว'; toast('ยกเลิกการดาวน์โหลด', 'info'); }
+    else { $('merge-text').textContent = 'ล้มเหลว'; toast(`ดึงชิ้นส่วนไม่สำเร็จ: ${e.message}. ลองตั้งค่า Proxy หรือใช้ yt-dlp`, 'error'); }
+  } finally {
+    stream.busy = false; stream.abort = null;
+    $('btn-stream-dl').disabled = false; $('btn-stream-cancel').classList.add('hidden');
+  }
+}
+
+/* ---------------- history ---------------- */
+function renderHistory() {
+  $('history-count').textContent = String(history.length);
+  const list = $('history-list'); list.innerHTML = '';
+  if (!history.length) {
+    const e = document.createElement('div'); e.className = 'card rounded-2xl p-8 text-center text-slate-400 text-sm';
+    e.textContent = 'ยังไม่มีประวัติ'; list.appendChild(e); return;
+  }
+  history.forEach(h => {
+    const row = document.createElement('div'); row.className = 'card rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+    const info = document.createElement('div'); info.className = 'min-w-0 space-y-1';
+    const top = document.createElement('div'); top.className = 'flex items-center gap-2 text-xs';
+    const p = document.createElement('span'); p.className = 'px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold'; p.textContent = h.platform;
+    const tm = document.createElement('span'); tm.className = 'text-slate-500'; tm.textContent = h.time || '';
+    top.append(p, tm);
+    const title = document.createElement('div'); title.className = 'text-sm font-medium truncate'; title.textContent = h.title || h.url;
+    const u = document.createElement('div'); u.className = 'text-[11px] text-slate-500 truncate'; u.textContent = h.url;
+    info.append(top, title, u);
+    const btn = document.createElement('button'); btn.className = 'shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500 hover:bg-emerald-400 text-slate-950'; btn.textContent = 'ดึงอีกครั้ง';
+    btn.onclick = () => {
+      if (detectPlatform(h.url) === 'Stream') { $('stream-url').value = h.url; switchTab('stream'); analyzeStream(h.url); }
+      else { $('url-input').value = h.url; switchTab('social'); handleFetch(); }
+    };
+    row.append(info, btn); list.appendChild(row);
+  });
+}
+
+/* ---------------- settings UI ---------------- */
+function renderEngineStatus() {
+  const s = $('engine-status'); s.innerHTML = '';
+  const add = (ok, text) => { const e = document.createElement('span'); e.textContent = (ok ? '● ' : '○ ') + text; e.className = ok ? 'text-emerald-400' : 'text-amber-400'; s.appendChild(e); };
+  add(true, 'TikTok: TikWM');
+  add(!!settings.cobaltUrl, settings.cobaltUrl ? 'IG / FB / X / YouTube: cobalt พร้อม' : 'IG / FB / X / YouTube: ยังไม่ได้ตั้งค่า cobalt');
+  add(!!settings.proxyUrl, settings.proxyUrl ? 'Proxy: เปิด' : 'Proxy: ปิด');
+  $('settings-dot').classList.toggle('hidden', !!settings.cobaltUrl);
+}
+
+function showTest(text, ok) {
+  const b = $('test-result'); b.textContent = text; b.classList.remove('hidden');
+  b.className = 'text-xs rounded-lg p-3 border whitespace-pre-wrap ' + (ok ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-200' : 'bg-rose-500/10 border-rose-500/40 text-rose-200');
+}
+
+async function testCobalt() {
+  const u = $('set-cobalt').value.trim();
+  if (!u) { showTest('ยังไม่ได้ใส่ URL', false); return; }
+  try {
+    const r = await fetch(u.replace(/\/+$/, '') + '/', { headers: { Accept: 'application/json' } });
+    const j = await r.json();
+    if (!j.cobalt) throw new Error('ตอบกลับไม่ใช่ cobalt');
+    showTest(`เชื่อมต่อสำเร็จ • cobalt ${j.cobalt.version}\nรองรับ: ${(j.cobalt.services || []).join(', ')}`, true);
+  } catch (e) {
+    showTest(`เชื่อมต่อไม่ได้: ${e.message}\nตรวจสอบว่า URL เป็น HTTPS, เซิร์ฟเวอร์เปิดอยู่ และ CORS อนุญาตโดเมน GitHub Pages ของคุณ`, false);
+  }
+}
+
+async function testProxy() {
+  const u = $('set-proxy').value.trim();
+  if (!u) { showTest('ยังไม่ได้ใส่ URL', false); return; }
+  try {
+    const r = await fetch(u.replace(/\/+$/, '') + '/?url=' + encodeURIComponent('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8'));
+    const t = await r.text();
+    if (!t.startsWith('#EXTM3U')) throw new Error('HTTP ' + r.status + ' ' + t.slice(0, 80));
+    showTest('Proxy ทำงานปกติ', true);
+  } catch (e) { showTest('Proxy ใช้ไม่ได้: ' + e.message, false); }
+}
+
+/* ---------------- wire up ---------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  loadStore();
+  renderHistory(); renderEngineStatus();
+  $('set-cobalt').value = settings.cobaltUrl; $('set-cobalt-key').value = settings.cobaltKey;
+  $('set-proxy').value = settings.proxyUrl; $('set-quality').value = settings.quality;
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+  $('btn-fetch').addEventListener('click', handleFetch);
+  $('url-input').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); handleFetch(); } });
+  $('btn-paste').addEventListener('click', async () => {
+    try { const t = await navigator.clipboard.readText(); if (t) { $('url-input').value = t.trim(); return; } } catch (e) {}
+    $('url-input').focus(); toast('กด Ctrl+V ในช่องลิงก์ได้เลย');
+  });
+
+  $('btn-analyze').addEventListener('click', () => analyzeStream());
+  $('stream-url').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); analyzeStream(); } });
+  document.querySelectorAll('.stream-sample').forEach(b => b.addEventListener('click', () => { $('stream-url').value = b.dataset.sample; analyzeStream(b.dataset.sample); }));
+  $('stream-quality').addEventListener('change', async (e) => {
+    if (!stream.master) return;
+    try { await loadMediaPlaylist(parseInt(e.target.value, 10)); } catch (err) { toast('โหลดเพลย์ลิสต์ความละเอียดนี้ไม่ได้: ' + err.message, 'error'); }
+  });
+  $('stream-referer').addEventListener('change', () => { stream.referer = $('stream-referer').value.trim(); if (stream.url) updateCli(); });
+  $('btn-stream-dl').addEventListener('click', downloadStream);
+  $('btn-stream-cancel').addEventListener('click', () => stream.abort && stream.abort.abort());
+  $('btn-copy-cmd').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('cli-cmd').textContent); toast('คัดลอกแล้ว', 'success'); } catch (e) { toast('คัดลอกไม่ได้', 'error'); }
+  });
+
+  $('btn-clear-history').addEventListener('click', () => { history = []; saveHistory(); renderHistory(); });
+
+  $('btn-test-cobalt').addEventListener('click', testCobalt);
+  $('btn-test-proxy').addEventListener('click', testProxy);
+  $('btn-save-settings').addEventListener('click', () => {
+    settings.cobaltUrl = $('set-cobalt').value.trim();
+    settings.cobaltKey = $('set-cobalt-key').value.trim();
+    settings.proxyUrl = $('set-proxy').value.trim();
+    settings.quality = $('set-quality').value;
+    saveSettings(); renderEngineStatus();
+    toast('บันทึกการตั้งค่าแล้ว', 'success');
+  });
+
+  // Allow sharing a link: index.html?url=...
+  const q = new URLSearchParams(location.search).get('url');
+  if (q) { $('url-input').value = q; handleFetch(); }
+});
 </script>
 </body>
 </html>
